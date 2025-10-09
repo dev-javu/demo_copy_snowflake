@@ -97,7 +97,7 @@ jobs:
 
   schema-change:
     needs: [detect-changes, terraform]
-    if: needs.detect-changes.outputs.migrations == 'true'
+    if: needs.detect-changes.outputs.migrations == 'true' && (needs.terraform.result == 'success' || needs.terraform.result == 'skipped')
     runs-on: ubuntu-latest
     env:
       SF_PRIVATE_KEY_B64: ${{ secrets.SF_PRIVATE_KEY_B64 }}
