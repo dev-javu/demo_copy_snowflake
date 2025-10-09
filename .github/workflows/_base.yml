@@ -47,6 +47,8 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
+      TF_VAR_organization_name: ${{ secrets.SF_ORGANIZATION_NAME }}
+      TF_VAR_account_name: ${{ secrets.SF_ACCOUNT_NAME }}
       TF_VAR_admin_user: ${{ secrets.SF_USERNAME }}
       SF_PRIVATE_KEY_B64: ${{ secrets.SF_PRIVATE_KEY_B64 }}
       TF_VAR_admin_role: ${{ secrets.SF_ROLE }}

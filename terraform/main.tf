@@ -15,15 +15,16 @@ provider "snowflake" {
   warehouse         = var.warehouse
 }
 
+############################################
+# Databases for bronze / silver / gold
+############################################
+/*
+
 resource "snowflake_database" "schemachange" {
   name         = "SCHEMACHANGE"
   is_transient = false
 }
 
-############################################
-# Databases for bronze / silver / gold
-############################################
-/*
 resource "snowflake_database" "bronze" {
   name         = "BRONZE"
   is_transient = false
