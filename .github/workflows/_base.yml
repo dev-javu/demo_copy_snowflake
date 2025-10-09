@@ -105,7 +105,8 @@ jobs:
       SNOWFLAKE_USERNAME: ${{ secrets.SF_USERNAME }}
       SNOWFLAKE_ROLE: ${{ secrets.SF_ROLE }}
       SNOWFLAKE_WAREHOUSE: ${{ secrets.SF_WAREHOUSE }}
-      SNOWFLAKE_DATABASE: ${{ matrix.database }}
+      # Use production DB on 'production' branch, else use dev DB
+      SNOWFLAKE_DATABASE: ${{ (github.ref_name == 'production' && secrets.SF_DATABASE) || secrets.SF_DATABASE_DEV }}
       SCHEMAS_CHANGED: ${{ needs.detect-changes.outputs.schemas }}
       TABLES_CHANGED: ${{ needs.detect-changes.outputs.tables }}
       VIEWS_CHANGED: ${{ needs.detect-changes.outputs.views }}
