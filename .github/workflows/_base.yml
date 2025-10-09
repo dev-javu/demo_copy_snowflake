@@ -120,6 +120,8 @@ jobs:
       SNOWFLAKE_WAREHOUSE: ${{ secrets.SF_WAREHOUSE }}
       # Use production DB on 'production' branch, else use dev DB
       SNOWFLAKE_DATABASE: ${{ (github.ref_name == 'production' && secrets.SF_DATABASE) || secrets.SF_DATABASE_DEV }}
+      # Where to store schemachange history (dedicated DBs)
+      SCHEMACHANGE_HISTORY_DB: ${{ (github.ref_name == 'production' && secrets.SF_DATABASE) || secrets.SF_DATABASE }}
       # Suffix for environment-specific database naming (e.g., BRONZE_DEVOPS vs BRONZE_DEVOPS_DEV)
       SNOWFLAKE_ENV_SUFFIX: ${{ (github.ref_name == 'production' && '') || '_DEV' }}
       SCHEMAS_CHANGED: ${{ needs.detect-changes.outputs.schemas }}
@@ -202,7 +204,7 @@ jobs:
               echo "Deploying changes for $folder ..."
               cmd="schemachange deploy \
                 -f $GITHUB_WORKSPACE/migrations/$folder \
-                -c $SNOWFLAKE_DATABASE.SCHEMACHANGE.CHANGE_HISTORY \
+                -c $SCHEMACHANGE_HISTORY_DB.SCHEMACHANGE.CHANGE_HISTORY \
                 --create-change-history-table \
                 --connections-file $GITHUB_WORKSPACE/connections.toml \
                 --connection-name default \
