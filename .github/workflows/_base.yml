@@ -112,7 +112,7 @@ jobs:
   schema-change:
     needs: [detect-changes, terraform]
     # Run if migrations changed AND (no terraform changes) OR (terraform ran and succeeded)
-    if: ${{ needs.detect-changes.outputs.migrations == 'true' && (needs.detect-changes.outputs.terraform != 'true' || needs.terraform.result == 'success') }}
+    if: ${{ needs.detect-changes.result == 'success' && (needs.terraform.result == 'success' || needs.terraform.result == 'skipped') }}
     runs-on: ubuntu-latest
     env:
       SF_PRIVATE_KEY_B64: ${{ secrets.SF_PRIVATE_KEY_B64 }}
