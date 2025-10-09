@@ -121,7 +121,7 @@ jobs:
       # Use production DB on 'production' branch, else use dev DB
       SNOWFLAKE_DATABASE: ${{ (github.ref_name == 'production' && secrets.SF_DATABASE) || secrets.SF_DATABASE_DEV }}
       # Where to store schemachange history (dedicated DBs)
-      SCHEMACHANGE_HISTORY_DB: ${{ (github.ref_name == 'production' && secrets.SF_DATABASE) || secrets.SF_DATABASE }}
+      SCHEMACHANGE_HISTORY_DB: ${{ (github.ref_name == 'production' && secrets.SF_DATABASE) || secrets.SF_DATABASE_DEV }}
       # Suffix for environment-specific database naming (e.g., BRONZE_DEVOPS vs BRONZE_DEVOPS_DEV)
       SNOWFLAKE_ENV_SUFFIX: ${{ (github.ref_name == 'production' && '') || '_DEV' }}
       SCHEMAS_CHANGED: ${{ needs.detect-changes.outputs.schemas }}
