@@ -40,6 +40,20 @@ jobs:
               - 'migrations/05_tasks/**'
             terraform:
               - 'terraform/**'
+      - name: Debug context and filters
+        run: |
+          echo "[detect-changes] event_name=${{ github.event_name }}"
+          echo "[detect-changes] ref=${{ github.ref }}"
+          echo "[detect-changes] ref_name=${{ github.ref_name }}"
+          echo "[detect-changes] base_ref=${{ github.base_ref }}"
+          echo "[detect-changes] head_ref=${{ github.head_ref }}"
+          echo "[detect-changes] migrations=${{ steps.filter.outputs.migrations }}"
+          echo "[detect-changes] schemas=${{ steps.filter.outputs.schemas }}"
+          echo "[detect-changes] tables=${{ steps.filter.outputs.tables }}"
+          echo "[detect-changes] views=${{ steps.filter.outputs.views }}"
+          echo "[detect-changes] procedures=${{ steps.filter.outputs.procedures }}"
+          echo "[detect-changes] tasks=${{ steps.filter.outputs.tasks }}"
+          echo "[detect-changes] terraform=${{ steps.filter.outputs.terraform }}"
 
   terraform:
     needs: detect-changes
@@ -98,11 +112,7 @@ jobs:
   schema-change:
     needs: [detect-changes, terraform]
     # Run if migrations changed AND (no terraform changes) OR (terraform ran and succeeded)
-    if: |
-      needs.detect-changes.outputs.migrations == 'true' && (
-        needs.detect-changes.outputs.terraform != 'true' ||
-        needs.terraform.result == 'success'
-      )
+    if: ${{ needs.detect-changes.outputs.migrations == 'true' && (needs.detect-changes.outputs.terraform != 'true' || needs.terraform.result == 'success') }}
     runs-on: ubuntu-latest
     env:
       SF_PRIVATE_KEY_B64: ${{ secrets.SF_PRIVATE_KEY_B64 }}
@@ -122,6 +132,23 @@ jobs:
     steps:
       - name: Retrieve repository
         uses: actions/checkout@v4
+
+      - name: Debug context and filters
+        run: |
+          echo "event_name=${{ github.event_name }}"
+          echo "ref_name=${{ github.ref_name }}"
+          echo "base_ref=${{ github.base_ref }}"
+          echo "migrations=${{ needs.detect-changes.outputs.migrations }}"
+          echo "schemas=${{ needs.detect-changes.outputs.schemas }}"
+          echo "tables=${{ needs.detect-changes.outputs.tables }}"
+          echo "views=${{ needs.detect-changes.outputs.views }}"
+          echo "procedures=${{ needs.detect-changes.outputs.procedures }}"
+          echo "tasks=${{ needs.detect-changes.outputs.tasks }}"
+          echo "terraform_changed=${{ needs.detect-changes.outputs.terraform }}"
+          echo "terraform_result=${{ needs.terraform.result }}"
+          echo "SNOWFLAKE_DATABASE=${{ env.SNOWFLAKE_DATABASE }}"
+          echo "SNOWFLAKE_ENV_SUFFIX=${{ env.SNOWFLAKE_ENV_SUFFIX }}"
+          echo "dry_run=${{ inputs.dry_run }}"
 
       - name: Use Python 3.8
         uses: actions/setup-python@v5
