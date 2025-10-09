@@ -105,7 +105,10 @@ jobs:
       SNOWFLAKE_USERNAME: ${{ secrets.SF_USERNAME }}
       SNOWFLAKE_ROLE: ${{ secrets.SF_ROLE }}
       SNOWFLAKE_WAREHOUSE: ${{ secrets.SF_WAREHOUSE }}
-      SNOWFLAKE_DATABASE: ${{ matrix.database }}
+      # Use production DB on 'production' branch, else use dev DB
+      SNOWFLAKE_DATABASE: ${{ (github.ref_name == 'production' && secrets.SF_DATABASE) || secrets.SF_DATABASE_DEV }}
+      # Suffix for environment-specific database naming (e.g., BRONZE_DEVOPS vs BRONZE_DEVOPS_DEV)
+      SNOWFLAKE_ENV_SUFFIX: ${{ (github.ref_name == 'production' && '') || '_DEV' }}
       SCHEMAS_CHANGED: ${{ needs.detect-changes.outputs.schemas }}
       TABLES_CHANGED: ${{ needs.detect-changes.outputs.tables }}
       VIEWS_CHANGED: ${{ needs.detect-changes.outputs.views }}
@@ -173,7 +176,8 @@ jobs:
                 --create-change-history-table \
                 --connections-file $GITHUB_WORKSPACE/connections.toml \
                 --connection-name default \
-                --verbose"
+                --verbose \
+                --vars \"{\\\"environment_suffix\\\":\\\"$SNOWFLAKE_ENV_SUFFIX\\\"}\""
               if [ "${{ inputs.dry_run }}" == "true" ]; then
                 cmd="$cmd --dry-run"
               fi
