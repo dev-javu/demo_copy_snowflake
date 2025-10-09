@@ -6,13 +6,14 @@ terraform {
   }
 }
 provider "snowflake" {
-  organization_name = var.organization_name
-  account_name      = var.account_name
-  user              = var.admin_user
-  private_key       = file(var.admin_private_key_path)
-  authenticator     = "SNOWFLAKE_JWT"
-  role              = var.admin_role
-  warehouse         = var.warehouse
+  organization_name      = var.organization_name
+  account_name           = var.account_name
+  user                   = var.admin_user
+  private_key            = file(var.admin_private_key_path)
+  private_key_passphrase = var.private_key_passphrase
+  authenticator          = "SNOWFLAKE_JWT"
+  role                   = var.admin_role
+  warehouse              = var.warehouse
 }
 
 resource "snowflake_database" "schemachange" {

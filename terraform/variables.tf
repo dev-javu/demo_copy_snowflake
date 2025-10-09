@@ -24,6 +24,7 @@ variable "private_key_passphrase" {
   type        = string
   description = "Passphrase for the private key used with Snowflake JWT authentication."
   sensitive   = true
+  default     = ""
 }
 
 variable "admin_role" {
