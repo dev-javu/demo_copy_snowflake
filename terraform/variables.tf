@@ -20,13 +20,6 @@ variable "admin_private_key_path" {
   description = "Filesystem path to the PEM encoded private key Terraform uses."
 }
 
-variable "private_key_passphrase" {
-  type        = string
-  description = "Passphrase for the private key used with Snowflake JWT authentication."
-  sensitive   = true
-  default     = ""
-}
-
 variable "admin_role" {
   type        = string
   description = "Snowflake role Terraform uses for operations."

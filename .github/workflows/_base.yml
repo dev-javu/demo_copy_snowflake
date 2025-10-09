@@ -49,7 +49,6 @@ jobs:
     env:
       TF_VAR_admin_user: ${{ secrets.SF_USERNAME }}
       SF_PRIVATE_KEY_B64: ${{ secrets.SF_PRIVATE_KEY_B64 }}
-      TF_VAR_private_key_passphrase: ${{ secrets.SF_PRIVATE_KEY_PASSPHRASE }}
       TF_VAR_admin_role: ${{ secrets.SF_ROLE }}
       TF_VAR_warehouse: ${{ secrets.SF_WAREHOUSE }}
     
@@ -100,7 +99,6 @@ jobs:
     runs-on: ubuntu-latest
     env:
       SF_PRIVATE_KEY_B64: ${{ secrets.SF_PRIVATE_KEY_B64 }}
-      SNOWFLAKE_PRIVATE_KEY_PASSPHRASE: ${{ secrets.SF_PRIVATE_KEY_PASSPHRASE }}
       SNOWFLAKE_ACCOUNT: ${{ secrets.SF_ACCOUNT }}
       SNOWFLAKE_USERNAME: ${{ secrets.SF_USERNAME }}
       SNOWFLAKE_ROLE: ${{ secrets.SF_ROLE }}
@@ -142,7 +140,6 @@ jobs:
           database = "${{ env.SNOWFLAKE_DATABASE }}"
           authenticator = "snowflake_jwt"
           private_key_file = "${{ env.SNOWFLAKE_PRIVATE_KEY_PATH }}"
-          private_key_file_pwd = "${{ env.SNOWFLAKE_PRIVATE_KEY_PASSPHRASE }}"
           EOF
 
       - name: Fix connections.toml permissions
