@@ -57,7 +57,6 @@ jobs:
 
   terraform:
     needs: detect-changes
-    if: needs.detect-changes.outputs.terraform == 'true' && ((github.event_name == 'pull_request' && github.base_ref == 'production') || (github.event_name != 'pull_request' && github.ref_name == 'production'))
     runs-on: ubuntu-latest
 
     env:
@@ -111,8 +110,7 @@ jobs:
 
   schema-change:
     needs: [detect-changes, terraform]
-    # Run if migrations changed AND (no terraform changes) OR (terraform ran and succeeded)
-    if: ${{ needs.terraform.result == 'success' || needs.terraform.result == 'skipped' }}
+    if: ${{ needs.detect-changes.result == 'success' && (needs.terraform.result == 'success' || needs.terraform.result == 'skipped') }}
     runs-on: ubuntu-latest
     env:
       SF_PRIVATE_KEY_B64: ${{ secrets.SF_PRIVATE_KEY_B64 }}
