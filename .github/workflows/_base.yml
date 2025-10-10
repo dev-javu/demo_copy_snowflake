@@ -68,9 +68,18 @@ jobs:
       TF_VAR_warehouse: ${{ secrets.SF_WAREHOUSE }}
     
     steps:
-      - uses: actions/checkout@v4
-      - uses: hashicorp/setup-terraform@v2
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
         if: needs.detect-changes.outputs.terraform == 'true'
+
+      - name: Auth GCP
+        uses: google-github-actions/auth@v2
+        if: needs.detect-changes.outputs.terraform == 'true'
+        with:
+          credentials_json: ${{ secrets.GCP_CREDENTIALS }}
 
       - name: Prepare private key
         if: needs.detect-changes.outputs.terraform == 'true'
