@@ -54,6 +54,8 @@ jobs:
           echo "[detect-changes] procedures=${{ steps.filter.outputs.procedures }}"
           echo "[detect-changes] tasks=${{ steps.filter.outputs.tasks }}"
           echo "[detect-changes] terraform=${{ steps.filter.outputs.terraform }}"
+          echo "sufix=${{ (github.ref_name == 'production' && '') || '_DEV' }}"
+          echo "sufix_val_production=${{ (github.ref_name == 'production') }}"
 
   terraform:
     needs: detect-changes
