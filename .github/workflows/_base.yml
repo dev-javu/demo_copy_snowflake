@@ -54,7 +54,7 @@ jobs:
           echo "[detect-changes] procedures=${{ steps.filter.outputs.procedures }}"
           echo "[detect-changes] tasks=${{ steps.filter.outputs.tasks }}"
           echo "[detect-changes] terraform=${{ steps.filter.outputs.terraform }}"
-          echo "sufix=${{ (github.ref_name == 'production' && '') || '_DEV' }}"
+          echo "sufix=${{ github.ref_name == 'dev' && '_DEV' || github.ref_name == 'production' && '' || '' }}"
           echo "sufix_val_production=${{ (github.ref_name == 'production') }}"
 
   terraform:
@@ -130,11 +130,11 @@ jobs:
       SNOWFLAKE_ROLE: ${{ secrets.SF_ROLE }}
       SNOWFLAKE_WAREHOUSE: ${{ secrets.SF_WAREHOUSE }}
       # Use production DB on 'production' branch, else use dev DB
-      SNOWFLAKE_DATABASE: ${{ (github.ref_name == 'production' && secrets.SF_DATABASE) || secrets.SF_DATABASE_DEV }}
+      SNOWFLAKE_DATABASE: ${{ (github.ref_name == 'production' && secrets.SF_DATABASE) || (github.ref_name == 'dev' && secrets.SF_DATABASE_DEV)}}
       # Where to store schemachange history (dedicated DBs)
-      SCHEMACHANGE_HISTORY_DB: ${{ (github.ref_name == 'production' && secrets.SF_DATABASE) || secrets.SF_DATABASE_DEV }}
+      SCHEMACHANGE_HISTORY_DB: ${{ (github.ref_name == 'production' && secrets.SF_DATABASE) || (github.ref_name == 'dev' && secrets.SF_DATABASE_DEV)}}
       # Suffix for environment-specific database naming (e.g., BRONZE_DEVOPS vs BRONZE_DEVOPS_DEV)
-      SNOWFLAKE_ENV_SUFFIX: ${{ (github.ref_name == 'production' && '') || '_DEV' }}
+      SNOWFLAKE_ENV_SUFFIX: ${{ (github.ref_name == 'dev' && '_DEV') || (github.ref_name == 'production' && '') }}
       SCHEMAS_CHANGED: ${{ needs.detect-changes.outputs.schemas }}
       TABLES_CHANGED: ${{ needs.detect-changes.outputs.tables }}
       VIEWS_CHANGED: ${{ needs.detect-changes.outputs.views }}
