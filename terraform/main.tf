@@ -1,7 +1,7 @@
 terraform {
   backend "gcs" {
-    bucket  = "data-terraform"
-    prefix  = "snowflake/state"
+    bucket = "data-terraform"
+    prefix = "snowflake/state"
   }
   required_providers {
     snowflake = {
