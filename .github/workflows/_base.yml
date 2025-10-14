@@ -46,6 +46,7 @@ jobs:
           echo "[detect-changes] ref=${{ github.ref }}"
           echo "[detect-changes] ref_name=${{ github.ref_name }}"
           echo "[detect-changes] base_ref=${{ github.base_ref }}"
+          echo "[detect-changes] effective_ref_name=${{ github.event_name == 'pull_request' && github.base_ref || github.ref_name }}"
           echo "[detect-changes] head_ref=${{ github.head_ref }}"
           echo "[detect-changes] migrations=${{ steps.filter.outputs.migrations }}"
           echo "[detect-changes] schemas=${{ steps.filter.outputs.schemas }}"
@@ -54,8 +55,8 @@ jobs:
           echo "[detect-changes] procedures=${{ steps.filter.outputs.procedures }}"
           echo "[detect-changes] tasks=${{ steps.filter.outputs.tasks }}"
           echo "[detect-changes] terraform=${{ steps.filter.outputs.terraform }}"
-          echo "sufix=${{ github.ref_name == 'dev' && '_DEV' || github.ref_name == 'production' && '' || '' }}"
-          echo "sufix_val_production=${{ (github.ref_name == 'production') }}"
+          echo "sufix=${{ ((github.event_name == 'pull_request' && github.base_ref) || github.ref_name) == 'dev' && '_DEV' || '' }}"
+          echo "sufix_val_production=${{ (((github.event_name == 'pull_request' && github.base_ref) || github.ref_name) == 'production') }}"
 
   terraform:
     needs: detect-changes
@@ -129,8 +130,6 @@ jobs:
       SNOWFLAKE_USERNAME: ${{ secrets.SF_USERNAME }}
       SNOWFLAKE_ROLE: ${{ secrets.SF_ROLE }}
       SNOWFLAKE_WAREHOUSE: ${{ secrets.SF_WAREHOUSE }}
-      # Use production DB on 'production' branch, else use dev DB
-      SNOWFLAKE_DATABASE: ${{ (github.ref_name == 'production' && secrets.SF_DATABASE) || (github.ref_name == 'dev' && secrets.SF_DATABASE_DEV)}}
       SCHEMAS_CHANGED: ${{ needs.detect-changes.outputs.schemas }}
       TABLES_CHANGED: ${{ needs.detect-changes.outputs.tables }}
       VIEWS_CHANGED: ${{ needs.detect-changes.outputs.views }}
@@ -139,6 +138,22 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
+
+      - name: Set target environment variables
+        run: |
+          EFFECTIVE_REF="${{ github.event_name == 'pull_request' && github.base_ref || github.ref_name }}"
+          echo "EFFECTIVE_REF_NAME=$EFFECTIVE_REF" >> $GITHUB_ENV
+          if [ "$EFFECTIVE_REF" = "production" ]; then
+            echo "SNOWFLAKE_DATABASE=${{ secrets.SF_DATABASE }}" >> $GITHUB_ENV
+            echo "SNOWFLAKE_ENV_SUFFIX=" >> $GITHUB_ENV
+          elif [ "$EFFECTIVE_REF" = "dev" ]; then
+            echo "SNOWFLAKE_DATABASE=${{ secrets.SF_DATABASE_DEV }}" >> $GITHUB_ENV
+            echo "SNOWFLAKE_ENV_SUFFIX=_DEV" >> $GITHUB_ENV
+          else
+            # Default to dev settings if branch is not production
+            echo "SNOWFLAKE_DATABASE=${{ secrets.SF_DATABASE_DEV }}" >> $GITHUB_ENV
+            echo "SNOWFLAKE_ENV_SUFFIX=_DEV" >> $GITHUB_ENV
+          fi
 
       - name: Prepare private key
         run: |
@@ -160,12 +175,15 @@ jobs:
         run: |
           echo "event_name=${{ github.event_name }}"
           echo "ref_name=${{ github.ref_name }}"
+          echo "base_ref=${{ github.base_ref }}"
+          echo "effective_ref_name=${{ env.EFFECTIVE_REF_NAME }}"
           echo "schemas_changed=${{ env.SCHEMAS_CHANGED }}"
           echo "tables_changed=${{ env.TABLES_CHANGED }}"
           echo "views_changed=${{ env.VIEWS_CHANGED }}"
           echo "procedures_changed=${{ env.PROCEDURES_CHANGED }}"
           echo "tasks_changed=${{ env.TASKS_CHANGED }}"
           echo "SNOWFLAKE_DATABASE=${{ env.SNOWFLAKE_DATABASE }}"
+          echo "SNOWFLAKE_ENV_SUFFIX=${{ env.SNOWFLAKE_ENV_SUFFIX }}"
           echo "dry_run=${{ inputs.dry_run }}"
 
       - name: Execute SQL files with snowsql
