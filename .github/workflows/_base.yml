@@ -161,15 +161,11 @@ jobs:
           chmod 600 $RUNNER_TEMP/snowflake_key.p8
           echo "SNOWFLAKE_PRIVATE_KEY_PATH=$RUNNER_TEMP/snowflake_key.p8" >> $GITHUB_ENV
 
-      - name: Install snowsql
-        shell: bash
+      - name: Install SnowSQL
         run: |
-          set -euo pipefail
-          curl -L -o snowsql.bash \
-            https://sfc-repo.snowflakecomputing.com/snowsql/bootstrap/1.2/linux_x86_64/snowsql-linux_x86_64_latest.bash
-          bash snowsql.bash -y -d $RUNNER_TEMP/snowsql
-          echo "$RUNNER_TEMP/snowsql/bin" >> $GITHUB_PATH
-          snowsql -v
+          curl -O https://sfc-repo.snowflakecomputing.com/snowsql/bootstrap/installers/snowsql-linux_x86_64
+          chmod +x snowsql-linux_x86_64
+          ./snowsql-linux_x86_64 --skip-prompt
 
       - name: Debug context
         run: |
