@@ -119,4 +119,94 @@ jobs:
         if: needs.detect-changes.outputs.terraform != 'true'
         run: echo "No Terraform changes detected; skipping Terraform steps."
 
+  snowsql-exec:
+    needs: [detect-changes, terraform]
+    if: ${{ needs.detect-changes.result == 'success' && (needs.terraform.result == 'success' || needs.terraform.result == 'skipped') }}
+    runs-on: ubuntu-latest
+    env:
+      SF_PRIVATE_KEY_B64: ${{ secrets.SF_PRIVATE_KEY_B64 }}
+      SNOWFLAKE_ACCOUNT: ${{ secrets.SF_ACCOUNT }}
+      SNOWFLAKE_USERNAME: ${{ secrets.SF_USERNAME }}
+      SNOWFLAKE_ROLE: ${{ secrets.SF_ROLE }}
+      SNOWFLAKE_WAREHOUSE: ${{ secrets.SF_WAREHOUSE }}
+      # Use production DB on 'production' branch, else use dev DB
+      SNOWFLAKE_DATABASE: ${{ (github.ref_name == 'production' && secrets.SF_DATABASE) || (github.ref_name == 'dev' && secrets.SF_DATABASE_DEV)}}
+      SCHEMAS_CHANGED: ${{ needs.detect-changes.outputs.schemas }}
+      TABLES_CHANGED: ${{ needs.detect-changes.outputs.tables }}
+      VIEWS_CHANGED: ${{ needs.detect-changes.outputs.views }}
+      PROCEDURES_CHANGED: ${{ needs.detect-changes.outputs.procedures }}
+      TASKS_CHANGED: ${{ needs.detect-changes.outputs.tasks }}
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Prepare private key
+        run: |
+          echo "$SF_PRIVATE_KEY_B64" | base64 --decode > $RUNNER_TEMP/snowflake_key.p8
+          chmod 600 $RUNNER_TEMP/snowflake_key.p8
+          echo "SNOWFLAKE_PRIVATE_KEY_PATH=$RUNNER_TEMP/snowflake_key.p8" >> $GITHUB_ENV
+
+      - name: Install snowsql
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -L -o snowsql.bash \
+            https://sfc-repo.snowflakecomputing.com/snowsql/bootstrap/1.2/linux_x86_64/snowsql-linux_x86_64_latest.bash
+          bash snowsql.bash -y -d $RUNNER_TEMP/snowsql
+          echo "$RUNNER_TEMP/snowsql/bin" >> $GITHUB_PATH
+          snowsql -v
+
+      - name: Debug context
+        run: |
+          echo "event_name=${{ github.event_name }}"
+          echo "ref_name=${{ github.ref_name }}"
+          echo "schemas_changed=${{ env.SCHEMAS_CHANGED }}"
+          echo "tables_changed=${{ env.TABLES_CHANGED }}"
+          echo "views_changed=${{ env.VIEWS_CHANGED }}"
+          echo "procedures_changed=${{ env.PROCEDURES_CHANGED }}"
+          echo "tasks_changed=${{ env.TASKS_CHANGED }}"
+          echo "SNOWFLAKE_DATABASE=${{ env.SNOWFLAKE_DATABASE }}"
+          echo "dry_run=${{ inputs.dry_run }}"
+
+      - name: Execute SQL files with snowsql
+        run: |
+          set -euo pipefail
+          declare -A dirs=(
+            ["01_schemas"]=$SCHEMAS_CHANGED
+            ["02_tables"]=$TABLES_CHANGED
+            ["03_views"]=$VIEWS_CHANGED
+            ["04_procedures"]=$PROCEDURES_CHANGED
+            ["05_tasks"]=$TASKS_CHANGED
+          )
+
+          for folder in "${!dirs[@]}"; do
+            if [ "${dirs[$folder]}" == "true" ]; then
+              echo "Processing folder: $folder"
+              mapfile -t files < <(find "$GITHUB_WORKSPACE/migrations/$folder" -type f -name "*.sql" | sort)
+              if [ ${#files[@]} -eq 0 ]; then
+                echo "No .sql files found in $folder"
+                continue
+              fi
+
+              for sql_file in "${files[@]}"; do
+                echo "Found SQL: $sql_file"
+                if [ "${{ inputs.dry_run }}" == "true" ]; then
+                  echo "DRY RUN - would execute: $sql_file"
+                else
+                  echo "Executing: $sql_file"
+                  snowsql \
+                    -a "$SNOWFLAKE_ACCOUNT" \
+                    -u "$SNOWFLAKE_USERNAME" \
+                    -r "$SNOWFLAKE_ROLE" \
+                    -w "$SNOWFLAKE_WAREHOUSE" \
+                    -d "$SNOWFLAKE_DATABASE" \
+                    -o authenticator=snowflake_jwt \
+                    -o private_key_path="$SNOWFLAKE_PRIVATE_KEY_PATH" \
+                    -o exit_on_error=true \
+                    -f "$sql_file"
+                fi
+              done
+            fi
+          done
+
   
