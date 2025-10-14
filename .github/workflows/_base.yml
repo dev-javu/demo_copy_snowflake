@@ -46,6 +46,7 @@ jobs:
           echo "[detect-changes] ref=${{ github.ref }}"
           echo "[detect-changes] ref_name=${{ github.ref_name }}"
           echo "[detect-changes] base_ref=${{ github.base_ref }}"
+          echo "[detect-changes] effective_ref_name=${{ github.event_name == 'pull_request' && github.base_ref || github.ref_name }}"
           echo "[detect-changes] head_ref=${{ github.head_ref }}"
           echo "[detect-changes] migrations=${{ steps.filter.outputs.migrations }}"
           echo "[detect-changes] schemas=${{ steps.filter.outputs.schemas }}"
@@ -54,8 +55,8 @@ jobs:
           echo "[detect-changes] procedures=${{ steps.filter.outputs.procedures }}"
           echo "[detect-changes] tasks=${{ steps.filter.outputs.tasks }}"
           echo "[detect-changes] terraform=${{ steps.filter.outputs.terraform }}"
-          echo "sufix=${{ github.ref_name == 'dev' && '_DEV' || github.ref_name == 'production' && '' || '' }}"
-          echo "sufix_val_production=${{ (github.ref_name == 'production') }}"
+          echo "sufix=${{ ((github.event_name == 'pull_request' && github.base_ref) || github.ref_name) == 'dev' && '_DEV' || '' }}"
+          echo "sufix_val_production=${{ (((github.event_name == 'pull_request' && github.base_ref) || github.ref_name) == 'production') }}"
 
   terraform:
     needs: detect-changes
@@ -119,7 +120,7 @@ jobs:
         if: needs.detect-changes.outputs.terraform != 'true'
         run: echo "No Terraform changes detected; skipping Terraform steps."
 
-  schema-change:
+  snowsql-exec:
     needs: [detect-changes, terraform]
     if: ${{ needs.detect-changes.result == 'success' && (needs.terraform.result == 'success' || needs.terraform.result == 'skipped') }}
     runs-on: ubuntu-latest
@@ -129,42 +130,30 @@ jobs:
       SNOWFLAKE_USERNAME: ${{ secrets.SF_USERNAME }}
       SNOWFLAKE_ROLE: ${{ secrets.SF_ROLE }}
       SNOWFLAKE_WAREHOUSE: ${{ secrets.SF_WAREHOUSE }}
-      # Use production DB on 'production' branch, else use dev DB
-      SNOWFLAKE_DATABASE: ${{ (github.ref_name == 'production' && secrets.SF_DATABASE) || (github.ref_name == 'dev' && secrets.SF_DATABASE_DEV)}}
-      # Where to store schemachange history (dedicated DBs)
-      SCHEMACHANGE_HISTORY_DB: ${{ (github.ref_name == 'production' && secrets.SF_DATABASE) || (github.ref_name == 'dev' && secrets.SF_DATABASE_DEV)}}
-      # Suffix for environment-specific database naming (e.g., BRONZE_DEVOPS vs BRONZE_DEVOPS_DEV)
-      SNOWFLAKE_ENV_SUFFIX: ${{ (github.ref_name == 'dev' && '_DEV') || (github.ref_name == 'production' && '') }}
       SCHEMAS_CHANGED: ${{ needs.detect-changes.outputs.schemas }}
       TABLES_CHANGED: ${{ needs.detect-changes.outputs.tables }}
       VIEWS_CHANGED: ${{ needs.detect-changes.outputs.views }}
       PROCEDURES_CHANGED: ${{ needs.detect-changes.outputs.procedures }}
       TASKS_CHANGED: ${{ needs.detect-changes.outputs.tasks }}
     steps:
-      - name: Retrieve repository
+      - name: Checkout repo
         uses: actions/checkout@v4
 
-      - name: Debug context and filters
+      - name: Set target environment variables
         run: |
-          echo "event_name=${{ github.event_name }}"
-          echo "ref_name=${{ github.ref_name }}"
-          echo "base_ref=${{ github.base_ref }}"
-          echo "migrations=${{ needs.detect-changes.outputs.migrations }}"
-          echo "schemas=${{ needs.detect-changes.outputs.schemas }}"
-          echo "tables=${{ needs.detect-changes.outputs.tables }}"
-          echo "views=${{ needs.detect-changes.outputs.views }}"
-          echo "procedures=${{ needs.detect-changes.outputs.procedures }}"
-          echo "tasks=${{ needs.detect-changes.outputs.tasks }}"
-          echo "terraform_changed=${{ needs.detect-changes.outputs.terraform }}"
-          echo "terraform_result=${{ needs.terraform.result }}"
-          echo "SNOWFLAKE_DATABASE=${{ env.SNOWFLAKE_DATABASE }}"
-          echo "SNOWFLAKE_ENV_SUFFIX=${{ env.SNOWFLAKE_ENV_SUFFIX }}"
-          echo "dry_run=${{ inputs.dry_run }}"
-
-      - name: Use Python 3.8
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.8'
+          EFFECTIVE_REF="${{ github.event_name == 'pull_request' && github.base_ref || github.ref_name }}"
+          echo "EFFECTIVE_REF_NAME=$EFFECTIVE_REF" >> $GITHUB_ENV
+          if [ "$EFFECTIVE_REF" = "production" ]; then
+            echo "SNOWFLAKE_DATABASE=${{ secrets.SF_DATABASE }}" >> $GITHUB_ENV
+            echo "SNOWFLAKE_ENV_SUFFIX=" >> $GITHUB_ENV
+          elif [ "$EFFECTIVE_REF" = "dev" ]; then
+            echo "SNOWFLAKE_DATABASE=${{ secrets.SF_DATABASE_DEV }}" >> $GITHUB_ENV
+            echo "SNOWFLAKE_ENV_SUFFIX=_DEV" >> $GITHUB_ENV
+          else
+            # Default to dev settings if branch is not production
+            echo "SNOWFLAKE_DATABASE=${{ secrets.SF_DATABASE_DEV }}" >> $GITHUB_ENV
+            echo "SNOWFLAKE_ENV_SUFFIX=_DEV" >> $GITHUB_ENV
+          fi
 
       - name: Prepare private key
         run: |
@@ -172,36 +161,34 @@ jobs:
           chmod 600 $RUNNER_TEMP/snowflake_key.p8
           echo "SNOWFLAKE_PRIVATE_KEY_PATH=$RUNNER_TEMP/snowflake_key.p8" >> $GITHUB_ENV
 
-      - name: Install schemachange
+      - name: Install snowsql
+        shell: bash
         run: |
-          pip install --upgrade pip
-          pip install schemachange==4.0.1
+          set -euo pipefail
+          curl -L -o snowsql.bash \
+            https://sfc-repo.snowflakecomputing.com/snowsql/bootstrap/1.2/linux_x86_64/snowsql-linux_x86_64_latest.bash
+          bash snowsql.bash -y -d $RUNNER_TEMP/snowsql
+          echo "$RUNNER_TEMP/snowsql/bin" >> $GITHUB_PATH
+          snowsql -v
 
-      - name: Create connections.toml
+      - name: Debug context
         run: |
-          cat <<EOF > connections.toml
-          [default]
-          account = "${{ env.SNOWFLAKE_ACCOUNT }}"
-          user = "${{ env.SNOWFLAKE_USERNAME }}"
-          role = "${{ env.SNOWFLAKE_ROLE }}"
-          warehouse = "${{ env.SNOWFLAKE_WAREHOUSE }}"
-          database = "${{ env.SNOWFLAKE_DATABASE }}"
-          authenticator = "snowflake_jwt"
-          private_key_file = "${{ env.SNOWFLAKE_PRIVATE_KEY_PATH }}"
-          EOF
+          echo "event_name=${{ github.event_name }}"
+          echo "ref_name=${{ github.ref_name }}"
+          echo "base_ref=${{ github.base_ref }}"
+          echo "effective_ref_name=${{ env.EFFECTIVE_REF_NAME }}"
+          echo "schemas_changed=${{ env.SCHEMAS_CHANGED }}"
+          echo "tables_changed=${{ env.TABLES_CHANGED }}"
+          echo "views_changed=${{ env.VIEWS_CHANGED }}"
+          echo "procedures_changed=${{ env.PROCEDURES_CHANGED }}"
+          echo "tasks_changed=${{ env.TASKS_CHANGED }}"
+          echo "SNOWFLAKE_DATABASE=${{ env.SNOWFLAKE_DATABASE }}"
+          echo "SNOWFLAKE_ENV_SUFFIX=${{ env.SNOWFLAKE_ENV_SUFFIX }}"
+          echo "dry_run=${{ inputs.dry_run }}"
 
-      - name: Fix connections.toml permissions
+      - name: Execute SQL files with snowsql
         run: |
-          chmod 600 connections.toml
-          sudo chown $USER connections.toml || true
-
-      - name: Debug connections.toml
-        run: |
-          echo "Connections config (sanitized):"
-          grep -v "private_key_file_pwd" connections.toml
-
-      - name: Run schemachange for each object
-        run: |
+          set -euo pipefail
           declare -A dirs=(
             ["01_schemas"]=$SCHEMAS_CHANGED
             ["02_tables"]=$TABLES_CHANGED
@@ -212,19 +199,32 @@ jobs:
 
           for folder in "${!dirs[@]}"; do
             if [ "${dirs[$folder]}" == "true" ]; then
-              echo "Deploying changes for $folder ..."
-              cmd="schemachange deploy \
-                -f $GITHUB_WORKSPACE/migrations/$folder \
-                -c $SCHEMACHANGE_HISTORY_DB.SCHEMACHANGE.CHANGE_HISTORY \
-                --create-change-history-table \
-                --connections-file $GITHUB_WORKSPACE/connections.toml \
-                --connection-name default \
-                --verbose \
-                --vars \"{\\\"environment_suffix\\\":\\\"$SNOWFLAKE_ENV_SUFFIX\\\"}\""
-              if [ "${{ inputs.dry_run }}" == "true" ]; then
-                cmd="$cmd --dry-run"
+              echo "Processing folder: $folder"
+              mapfile -t files < <(find "$GITHUB_WORKSPACE/migrations/$folder" -type f -name "*.sql" | sort)
+              if [ ${#files[@]} -eq 0 ]; then
+                echo "No .sql files found in $folder"
+                continue
               fi
-              echo "Running: $cmd"
-              eval "$cmd"
+
+              for sql_file in "${files[@]}"; do
+                echo "Found SQL: $sql_file"
+                if [ "${{ inputs.dry_run }}" == "true" ]; then
+                  echo "DRY RUN - would execute: $sql_file"
+                else
+                  echo "Executing: $sql_file"
+                  snowsql \
+                    -a "$SNOWFLAKE_ACCOUNT" \
+                    -u "$SNOWFLAKE_USERNAME" \
+                    -r "$SNOWFLAKE_ROLE" \
+                    -w "$SNOWFLAKE_WAREHOUSE" \
+                    -d "$SNOWFLAKE_DATABASE" \
+                    -o authenticator=snowflake_jwt \
+                    -o private_key_path="$SNOWFLAKE_PRIVATE_KEY_PATH" \
+                    -o exit_on_error=true \
+                    -f "$sql_file"
+                fi
+              done
             fi
           done
+
+  
