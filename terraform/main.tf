@@ -45,6 +45,11 @@ resource "snowflake_database" "silver_devops_dev" {
   is_transient = false
 }
 
+resource "snowflake_database" "silver_devops" {
+  name         = "SILVER_DEVOPS"
+  is_transient = false
+}
+
 
 ############################################
 # Databases for bronze / silver / gold
