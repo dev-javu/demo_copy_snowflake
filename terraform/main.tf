@@ -19,47 +19,10 @@ provider "snowflake" {
   warehouse         = var.warehouse
 }
 
-
-resource "snowflake_database" "schemachange" {
-  name         = "SCHEMACHANGE"
-  is_transient = false
-}
-
-resource "snowflake_database" "schemachange_dev" {
-  name         = "SCHEMACHANGE_DEV"
-  is_transient = false
-}
-
-resource "snowflake_database" "bronze_devops" {
-  name         = "BRONZE_DEVOPS"
-  is_transient = false
-}
-
-resource "snowflake_database" "bronze_devops_dev" {
-  name         = "BRONZE_DEVOPS_DEV"
-  is_transient = false
-}
-
-resource "snowflake_database" "silver_devops_dev" {
-  name         = "SILVER_DEVOPS_DEV"
-  is_transient = false
-}
-
-resource "snowflake_database" "silver_devops" {
-  name         = "SILVER_DEVOPS"
-  is_transient = false
-}
-
-
 ############################################
 # Databases for bronze / silver / gold
 ############################################
 /*
-
-resource "snowflake_database" "schemachange" {
-  name         = "SCHEMACHANGE"
-  is_transient = false
-}
 
 resource "snowflake_database" "bronze" {
   name         = "BRONZE"
