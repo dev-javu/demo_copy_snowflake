@@ -23,3 +23,25 @@ create or replace TABLE SILVER_DEVOPS{{ environment_suffix | default('') }}.MONG
 	TS_LOAD TIMESTAMP_NTZ(9) COMMENT 'Record insertion timestamp',
 	constraint PK_TB_ADSCATALOG primary key (ID_ADSCATALOG)
 );
+
+create or replace TABLE SILVER_DEVOPS{{ environment_suffix | default('') }}.MONGODB.TB_ADSCATALOG_V2 (
+	ID_ADSCATALOG VARCHAR(16777216) NOT NULL COMMENT 'Ads Catalog Id',
+	ID_BRAND VARCHAR(16777216) COMMENT 'Brand Id',
+	ID_CONTENT VARCHAR(16777216) COMMENT 'Content Id',
+	DS_TITLE VARCHAR(16777216) COMMENT 'Title description',
+	DS_URL VARCHAR(16777216) COMMENT 'URL description',
+	DS_DESCRIPTION VARCHAR(16777216) COMMENT 'Description',
+	DS_BUCKET VARCHAR(16777216) COMMENT 'Bucket',
+	IS_VERIFY BOOLEAN COMMENT 'Verify flag',
+	IS_ACTIVE BOOLEAN COMMENT 'Active flag',
+	IS_PUBSUB BOOLEAN COMMENT 'Pubsub flag',
+	IS_FIXED BOOLEAN COMMENT 'Fixed flag',
+	DS_VIDEO VARCHAR(16777216) COMMENT 'Video description',
+	TS_CREATED_AT TIMESTAMP_TZ(9) NOT NULL COMMENT 'Timestamp of created',
+	TS_UPDATED_AT TIMESTAMP_TZ(9) NOT NULL COMMENT 'Timestamp of updated',
+	DS_TAXONOMY VARCHAR(16777216) COMMENT 'Taxonomy',
+	DS_FREQUENCIES VARCHAR(16777216) COMMENT 'Frequencies',
+	TS_LAST_UPDATED TIMESTAMP_NTZ(9) NOT NULL COMMENT 'Timestamp of last update from Bronze table',
+	TS_LOAD TIMESTAMP_NTZ(9) COMMENT 'Record insertion timestamp',
+	constraint PK_TB_ADSCATALOG primary key (ID_ADSCATALOG)
+);
