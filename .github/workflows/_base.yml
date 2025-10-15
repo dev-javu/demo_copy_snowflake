@@ -209,7 +209,6 @@ jobs:
                 --role "$SNOWFLAKE_ROLE" \
                 --warehouse "$SNOWFLAKE_WAREHOUSE" \
                 --database "$SNOWFLAKE_DATABASE" \
-                --variable DATABASE="$SNOWFLAKE_DATABASE" \
                 --variable ENV_SUFFIX="$SNOWFLAKE_ENV_SUFFIX" \
                 --variable SUFIX="$SNOWFLAKE_ENV_SUFFIX" \
                 -f "$sql_file"
@@ -237,7 +236,6 @@ jobs:
                 --role "$SNOWFLAKE_ROLE" \
                 --warehouse "$SNOWFLAKE_WAREHOUSE" \
                 --database "$SNOWFLAKE_DATABASE" \
-                --variable DATABASE="$SNOWFLAKE_DATABASE" \
                 --variable ENV_SUFFIX="$SNOWFLAKE_ENV_SUFFIX" \
                 --variable SUFIX="$SNOWFLAKE_ENV_SUFFIX" \
                 -f "$sql_file"
@@ -265,7 +263,6 @@ jobs:
                 --role "$SNOWFLAKE_ROLE" \
                 --warehouse "$SNOWFLAKE_WAREHOUSE" \
                 --database "$SNOWFLAKE_DATABASE" \
-                --variable DATABASE="$SNOWFLAKE_DATABASE" \
                 --variable ENV_SUFFIX="$SNOWFLAKE_ENV_SUFFIX" \
                 --variable SUFIX="$SNOWFLAKE_ENV_SUFFIX" \
                 -f "$sql_file"
@@ -293,7 +290,6 @@ jobs:
                 --role "$SNOWFLAKE_ROLE" \
                 --warehouse "$SNOWFLAKE_WAREHOUSE" \
                 --database "$SNOWFLAKE_DATABASE" \
-                --variable DATABASE="$SNOWFLAKE_DATABASE" \
                 --variable ENV_SUFFIX="$SNOWFLAKE_ENV_SUFFIX" \
                 --variable SUFIX="$SNOWFLAKE_ENV_SUFFIX" \
                 -f "$sql_file"
@@ -321,7 +317,6 @@ jobs:
                 --role "$SNOWFLAKE_ROLE" \
                 --warehouse "$SNOWFLAKE_WAREHOUSE" \
                 --database "$SNOWFLAKE_DATABASE" \
-                --variable DATABASE="$SNOWFLAKE_DATABASE" \
                 --variable ENV_SUFFIX="$SNOWFLAKE_ENV_SUFFIX" \
                 --variable SUFIX="$SNOWFLAKE_ENV_SUFFIX" \
                 -f "$sql_file"
