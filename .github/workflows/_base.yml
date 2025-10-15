@@ -209,6 +209,7 @@ jobs:
                 --user "$SNOWFLAKE_USERNAME" \
                 --authenticator "$SNOWFLAKE_AUTHENTICATOR" \
                 --private-key-path "$SNOWFLAKE_PRIVATE_KEY_PATH" \
+                --format jinja \
                 --role "$SNOWFLAKE_ROLE" \
                 --warehouse "$SNOWFLAKE_WAREHOUSE" \
                 --database "$SNOWFLAKE_DATABASE" \
@@ -239,6 +240,7 @@ jobs:
                 --user "$SNOWFLAKE_USERNAME" \
                 --authenticator "$SNOWFLAKE_AUTHENTICATOR" \
                 --private-key-path "$SNOWFLAKE_PRIVATE_KEY_PATH" \
+                --format jinja \
                 --role "$SNOWFLAKE_ROLE" \
                 --warehouse "$SNOWFLAKE_WAREHOUSE" \
                 --database "$SNOWFLAKE_DATABASE" \
@@ -269,6 +271,7 @@ jobs:
                 --user "$SNOWFLAKE_USERNAME" \
                 --authenticator "$SNOWFLAKE_AUTHENTICATOR" \
                 --private-key-path "$SNOWFLAKE_PRIVATE_KEY_PATH" \
+                --format jinja \
                 --role "$SNOWFLAKE_ROLE" \
                 --warehouse "$SNOWFLAKE_WAREHOUSE" \
                 --database "$SNOWFLAKE_DATABASE" \
@@ -299,6 +302,7 @@ jobs:
                 --user "$SNOWFLAKE_USERNAME" \
                 --authenticator "$SNOWFLAKE_AUTHENTICATOR" \
                 --private-key-path "$SNOWFLAKE_PRIVATE_KEY_PATH" \
+                --format jinja \
                 --role "$SNOWFLAKE_ROLE" \
                 --warehouse "$SNOWFLAKE_WAREHOUSE" \
                 --database "$SNOWFLAKE_DATABASE" \
@@ -329,6 +333,7 @@ jobs:
                 --user "$SNOWFLAKE_USERNAME" \
                 --authenticator "$SNOWFLAKE_AUTHENTICATOR" \
                 --private-key-path "$SNOWFLAKE_PRIVATE_KEY_PATH" \
+                --format jinja \
                 --role "$SNOWFLAKE_ROLE" \
                 --warehouse "$SNOWFLAKE_WAREHOUSE" \
                 --database "$SNOWFLAKE_DATABASE" \
