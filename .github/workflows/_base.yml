@@ -162,7 +162,7 @@ jobs:
           echo "SNOWFLAKE_PRIVATE_KEY_PATH=$RUNNER_TEMP/snowflake_key.p8" >> $GITHUB_ENV
 
       - name: Install SnowSQL
-        uses: Snowflake-Labs/action-install-snowsql@v1
+        uses: snowflake-labs/action-install-snowsql@v1
         with:
           # Pin to a stable SnowSQL version. Update as needed.
           version: '1.2.35'
