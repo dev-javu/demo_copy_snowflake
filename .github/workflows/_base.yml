@@ -162,10 +162,15 @@ jobs:
           echo "SNOWFLAKE_PRIVATE_KEY_PATH=$RUNNER_TEMP/snowflake_key.p8" >> $GITHUB_ENV
 
       - name: Install SnowSQL
-        uses: snowflake-labs/action-install-snowsql@v1
-        with:
-          # Pin to a stable SnowSQL version. Update as needed.
-          version: '1.2.35'
+        run: |
+          set -euo pipefail
+          SNOWSQL_VERSION="1.2.35"
+          INSTALLER_URL="https://sfc-repo.snowflakecomputing.com/snowsql/bootstrap/1.2/linux_x86_64/snowsql-${SNOWSQL_VERSION}-linux_x86_64.bash"
+          echo "Downloading SnowSQL ${SNOWSQL_VERSION} from ${INSTALLER_URL}"
+          curl -sSfL "$INSTALLER_URL" -o snowsql.bash
+          bash snowsql.bash -n -d "$HOME/.local/bin" -p "$HOME/.snowsql"
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+          snowsql -v
 
       - name: Debug context
         run: |
