@@ -170,7 +170,7 @@ jobs:
 
       - name: Configure Snow CLI key pair auth
         run: |
-          echo "SNOWFLAKE_AUTHENTICATOR=snowflake_jwt" >> $GITHUB_ENV
+          echo "SNOWFLAKE_AUTHENTICATOR=SNOWFLAKE_JWT" >> $GITHUB_ENV
           echo "SNOWFLAKE_USER=${SNOWFLAKE_USERNAME}" >> $GITHUB_ENV
 
       - name: Debug context
