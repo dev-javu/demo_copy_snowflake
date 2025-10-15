@@ -188,44 +188,143 @@ jobs:
           echo "SNOWFLAKE_ENV_SUFFIX=${{ env.SNOWFLAKE_ENV_SUFFIX }}"
           echo "dry_run=${{ inputs.dry_run }}"
 
-      - name: Execute SQL files with snow
+      - name: Apply 01_schemas
+        if: env.SCHEMAS_CHANGED == 'true'
         run: |
           set -euo pipefail
-          declare -A dirs=(
-            ["01_schemas"]=$SCHEMAS_CHANGED
-            ["02_tables"]=$TABLES_CHANGED
-            ["03_views"]=$VIEWS_CHANGED
-            ["04_procedures"]=$PROCEDURES_CHANGED
-            ["05_tasks"]=$TASKS_CHANGED
-          )
+          mapfile -t files < <(find "$GITHUB_WORKSPACE/migrations/01_schemas" -type f -name "*.sql" | sort)
+          if [ ${#files[@]} -eq 0 ]; then
+            echo "No .sql files found in 01_schemas"
+            exit 0
+          fi
+          for sql_file in "${files[@]}"; do
+            echo "Found SQL: $sql_file"
+            if [ "${{ inputs.dry_run }}" == "true" ]; then
+              echo "DRY RUN - would execute: $sql_file"
+            else
+              echo "Executing: $sql_file"
+              snow sql \
+                --account "$SNOWFLAKE_ACCOUNT" \
+                --user "$SNOWFLAKE_USERNAME" \
+                --role "$SNOWFLAKE_ROLE" \
+                --warehouse "$SNOWFLAKE_WAREHOUSE" \
+                --database "$SNOWFLAKE_DATABASE" \
+                --variable DATABASE="$SNOWFLAKE_DATABASE" \
+                --variable ENV_SUFFIX="$SNOWFLAKE_ENV_SUFFIX" \
+                --variable SUFIX="$SNOWFLAKE_ENV_SUFFIX" \
+                -f "$sql_file"
+            fi
+          done
 
-          for folder in "${!dirs[@]}"; do
-            if [ "${dirs[$folder]}" == "true" ]; then
-              echo "Processing folder: $folder"
-              mapfile -t files < <(find "$GITHUB_WORKSPACE/migrations/$folder" -type f -name "*.sql" | sort)
-              if [ ${#files[@]} -eq 0 ]; then
-                echo "No .sql files found in $folder"
-                continue
-              fi
+      - name: Apply 02_tables
+        if: env.TABLES_CHANGED == 'true'
+        run: |
+          set -euo pipefail
+          mapfile -t files < <(find "$GITHUB_WORKSPACE/migrations/02_tables" -type f -name "*.sql" | sort)
+          if [ ${#files[@]} -eq 0 ]; then
+            echo "No .sql files found in 02_tables"
+            exit 0
+          fi
+          for sql_file in "${files[@]}"; do
+            echo "Found SQL: $sql_file"
+            if [ "${{ inputs.dry_run }}" == "true" ]; then
+              echo "DRY RUN - would execute: $sql_file"
+            else
+              echo "Executing: $sql_file"
+              snow sql \
+                --account "$SNOWFLAKE_ACCOUNT" \
+                --user "$SNOWFLAKE_USERNAME" \
+                --role "$SNOWFLAKE_ROLE" \
+                --warehouse "$SNOWFLAKE_WAREHOUSE" \
+                --database "$SNOWFLAKE_DATABASE" \
+                --variable DATABASE="$SNOWFLAKE_DATABASE" \
+                --variable ENV_SUFFIX="$SNOWFLAKE_ENV_SUFFIX" \
+                --variable SUFIX="$SNOWFLAKE_ENV_SUFFIX" \
+                -f "$sql_file"
+            fi
+          done
 
-              for sql_file in "${files[@]}"; do
-                echo "Found SQL: $sql_file"
-                if [ "${{ inputs.dry_run }}" == "true" ]; then
-                  echo "DRY RUN - would execute: $sql_file"
-                else
-                  echo "Executing: $sql_file"
-                  snow sql \
-                    --account "$SNOWFLAKE_ACCOUNT" \
-                    --user "$SNOWFLAKE_USERNAME" \
-                    --role "$SNOWFLAKE_ROLE" \
-                    --warehouse "$SNOWFLAKE_WAREHOUSE" \
-                    --database "$SNOWFLAKE_DATABASE" \
-                    --variable DATABASE="$SNOWFLAKE_DATABASE" \
-                    --variable ENV_SUFFIX="$SNOWFLAKE_ENV_SUFFIX" \
-                    --variable SUFIX="$SNOWFLAKE_ENV_SUFFIX" \
-                    -f "$sql_file"
-                fi
-              done
+      - name: Apply 03_views
+        if: env.VIEWS_CHANGED == 'true'
+        run: |
+          set -euo pipefail
+          mapfile -t files < <(find "$GITHUB_WORKSPACE/migrations/03_views" -type f -name "*.sql" | sort)
+          if [ ${#files[@]} -eq 0 ]; then
+            echo "No .sql files found in 03_views"
+            exit 0
+          fi
+          for sql_file in "${files[@]}"; do
+            echo "Found SQL: $sql_file"
+            if [ "${{ inputs.dry_run }}" == "true" ]; then
+              echo "DRY RUN - would execute: $sql_file"
+            else
+              echo "Executing: $sql_file"
+              snow sql \
+                --account "$SNOWFLAKE_ACCOUNT" \
+                --user "$SNOWFLAKE_USERNAME" \
+                --role "$SNOWFLAKE_ROLE" \
+                --warehouse "$SNOWFLAKE_WAREHOUSE" \
+                --database "$SNOWFLAKE_DATABASE" \
+                --variable DATABASE="$SNOWFLAKE_DATABASE" \
+                --variable ENV_SUFFIX="$SNOWFLAKE_ENV_SUFFIX" \
+                --variable SUFIX="$SNOWFLAKE_ENV_SUFFIX" \
+                -f "$sql_file"
+            fi
+          done
+
+      - name: Apply 04_procedures
+        if: env.PROCEDURES_CHANGED == 'true'
+        run: |
+          set -euo pipefail
+          mapfile -t files < <(find "$GITHUB_WORKSPACE/migrations/04_procedures" -type f -name "*.sql" | sort)
+          if [ ${#files[@]} -eq 0 ]; then
+            echo "No .sql files found in 04_procedures"
+            exit 0
+          fi
+          for sql_file in "${files[@]}"; do
+            echo "Found SQL: $sql_file"
+            if [ "${{ inputs.dry_run }}" == "true" ]; then
+              echo "DRY RUN - would execute: $sql_file"
+            else
+              echo "Executing: $sql_file"
+              snow sql \
+                --account "$SNOWFLAKE_ACCOUNT" \
+                --user "$SNOWFLAKE_USERNAME" \
+                --role "$SNOWFLAKE_ROLE" \
+                --warehouse "$SNOWFLAKE_WAREHOUSE" \
+                --database "$SNOWFLAKE_DATABASE" \
+                --variable DATABASE="$SNOWFLAKE_DATABASE" \
+                --variable ENV_SUFFIX="$SNOWFLAKE_ENV_SUFFIX" \
+                --variable SUFIX="$SNOWFLAKE_ENV_SUFFIX" \
+                -f "$sql_file"
+            fi
+          done
+
+      - name: Apply 05_tasks
+        if: env.TASKS_CHANGED == 'true'
+        run: |
+          set -euo pipefail
+          mapfile -t files < <(find "$GITHUB_WORKSPACE/migrations/05_tasks" -type f -name "*.sql" | sort)
+          if [ ${#files[@]} -eq 0 ]; then
+            echo "No .sql files found in 05_tasks"
+            exit 0
+          fi
+          for sql_file in "${files[@]}"; do
+            echo "Found SQL: $sql_file"
+            if [ "${{ inputs.dry_run }}" == "true" ]; then
+              echo "DRY RUN - would execute: $sql_file"
+            else
+              echo "Executing: $sql_file"
+              snow sql \
+                --account "$SNOWFLAKE_ACCOUNT" \
+                --user "$SNOWFLAKE_USERNAME" \
+                --role "$SNOWFLAKE_ROLE" \
+                --warehouse "$SNOWFLAKE_WAREHOUSE" \
+                --database "$SNOWFLAKE_DATABASE" \
+                --variable DATABASE="$SNOWFLAKE_DATABASE" \
+                --variable ENV_SUFFIX="$SNOWFLAKE_ENV_SUFFIX" \
+                --variable SUFIX="$SNOWFLAKE_ENV_SUFFIX" \
+                -f "$sql_file"
             fi
           done
 
