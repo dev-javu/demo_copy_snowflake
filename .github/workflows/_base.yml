@@ -204,8 +204,11 @@ jobs:
             else
               echo "Executing: $sql_file"
               snow sql \
+                --temporary-connection \
                 --account "$SNOWFLAKE_ACCOUNT" \
                 --user "$SNOWFLAKE_USERNAME" \
+                --authenticator "$SNOWFLAKE_AUTHENTICATOR" \
+                --private-key-path "$SNOWFLAKE_PRIVATE_KEY_PATH" \
                 --role "$SNOWFLAKE_ROLE" \
                 --warehouse "$SNOWFLAKE_WAREHOUSE" \
                 --database "$SNOWFLAKE_DATABASE" \
@@ -231,8 +234,11 @@ jobs:
             else
               echo "Executing: $sql_file"
               snow sql \
+                --temporary-connection \
                 --account "$SNOWFLAKE_ACCOUNT" \
                 --user "$SNOWFLAKE_USERNAME" \
+                --authenticator "$SNOWFLAKE_AUTHENTICATOR" \
+                --private-key-path "$SNOWFLAKE_PRIVATE_KEY_PATH" \
                 --role "$SNOWFLAKE_ROLE" \
                 --warehouse "$SNOWFLAKE_WAREHOUSE" \
                 --database "$SNOWFLAKE_DATABASE" \
@@ -258,8 +264,11 @@ jobs:
             else
               echo "Executing: $sql_file"
               snow sql \
+                --temporary-connection \
                 --account "$SNOWFLAKE_ACCOUNT" \
                 --user "$SNOWFLAKE_USERNAME" \
+                --authenticator "$SNOWFLAKE_AUTHENTICATOR" \
+                --private-key-path "$SNOWFLAKE_PRIVATE_KEY_PATH" \
                 --role "$SNOWFLAKE_ROLE" \
                 --warehouse "$SNOWFLAKE_WAREHOUSE" \
                 --database "$SNOWFLAKE_DATABASE" \
@@ -285,8 +294,11 @@ jobs:
             else
               echo "Executing: $sql_file"
               snow sql \
+                --temporary-connection \
                 --account "$SNOWFLAKE_ACCOUNT" \
                 --user "$SNOWFLAKE_USERNAME" \
+                --authenticator "$SNOWFLAKE_AUTHENTICATOR" \
+                --private-key-path "$SNOWFLAKE_PRIVATE_KEY_PATH" \
                 --role "$SNOWFLAKE_ROLE" \
                 --warehouse "$SNOWFLAKE_WAREHOUSE" \
                 --database "$SNOWFLAKE_DATABASE" \
@@ -312,8 +324,11 @@ jobs:
             else
               echo "Executing: $sql_file"
               snow sql \
+                --temporary-connection \
                 --account "$SNOWFLAKE_ACCOUNT" \
                 --user "$SNOWFLAKE_USERNAME" \
+                --authenticator "$SNOWFLAKE_AUTHENTICATOR" \
+                --private-key-path "$SNOWFLAKE_PRIVATE_KEY_PATH" \
                 --role "$SNOWFLAKE_ROLE" \
                 --warehouse "$SNOWFLAKE_WAREHOUSE" \
                 --database "$SNOWFLAKE_DATABASE" \
