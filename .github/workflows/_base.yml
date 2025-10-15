@@ -161,16 +161,17 @@ jobs:
           chmod 600 $RUNNER_TEMP/snowflake_key.p8
           echo "SNOWFLAKE_PRIVATE_KEY_PATH=$RUNNER_TEMP/snowflake_key.p8" >> $GITHUB_ENV
 
-      - name: Install SnowSQL
+      - name: Setup Snowflake CLI
+        uses: snowflakedb/snowflake-cli-action@v2.0
+        with:
+          # Install the CLI only; auth via key pair
+          use-oidc: false
+          cli-version: "3.11"
+
+      - name: Configure Snow CLI key pair auth
         run: |
-          set -euo pipefail
-          SNOWSQL_VERSION="1.2.35"
-          INSTALLER_URL="https://sfc-repo.snowflakecomputing.com/snowsql/bootstrap/1.2/linux_x86_64/snowsql-${SNOWSQL_VERSION}-linux_x86_64.bash"
-          echo "Downloading SnowSQL ${SNOWSQL_VERSION} from ${INSTALLER_URL}"
-          curl -sSfL "$INSTALLER_URL" -o snowsql.bash
-          bash snowsql.bash -n -d "$HOME/.local/bin" -p "$HOME/.snowsql"
-          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
-          snowsql -v
+          echo "SNOWFLAKE_AUTHENTICATOR=snowflake_jwt" >> $GITHUB_ENV
+          echo "SNOWFLAKE_USER=${SNOWFLAKE_USERNAME}" >> $GITHUB_ENV
 
       - name: Debug context
         run: |
@@ -187,7 +188,7 @@ jobs:
           echo "SNOWFLAKE_ENV_SUFFIX=${{ env.SNOWFLAKE_ENV_SUFFIX }}"
           echo "dry_run=${{ inputs.dry_run }}"
 
-      - name: Execute SQL files with snowsql
+      - name: Execute SQL files with snow
         run: |
           set -euo pipefail
           declare -A dirs=(
@@ -213,19 +214,15 @@ jobs:
                   echo "DRY RUN - would execute: $sql_file"
                 else
                   echo "Executing: $sql_file"
-                  snowsql \
-                    -a "$SNOWFLAKE_ACCOUNT" \
-                    -u "$SNOWFLAKE_USERNAME" \
-                    -r "$SNOWFLAKE_ROLE" \
-                    -w "$SNOWFLAKE_WAREHOUSE" \
-                    -d "$SNOWFLAKE_DATABASE" \
-                    -o authenticator=snowflake_jwt \
-                    -o private_key_path="$SNOWFLAKE_PRIVATE_KEY_PATH" \
-                    -o variable_substitution=true \
-                    -D DATABASE="$SNOWFLAKE_DATABASE" \
-                    -D ENV_SUFFIX="$SNOWFLAKE_ENV_SUFFIX" \
-                    -D SUFIX="$SNOWFLAKE_ENV_SUFFIX" \
-                    -o exit_on_error=true \
+                  snow sql \
+                    --account "$SNOWFLAKE_ACCOUNT" \
+                    --user "$SNOWFLAKE_USERNAME" \
+                    --role "$SNOWFLAKE_ROLE" \
+                    --warehouse "$SNOWFLAKE_WAREHOUSE" \
+                    --database "$SNOWFLAKE_DATABASE" \
+                    --variable DATABASE="$SNOWFLAKE_DATABASE" \
+                    --variable ENV_SUFFIX="$SNOWFLAKE_ENV_SUFFIX" \
+                    --variable SUFIX="$SNOWFLAKE_ENV_SUFFIX" \
                     -f "$sql_file"
                 fi
               done
