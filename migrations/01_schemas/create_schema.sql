@@ -1,2 +1,2 @@
--- Create DATA schema in BRONZE_DEVOPS with raw suffix
+-- Create DATA schema in BRONZE_DEVOPS with raw suffix 
 CREATE SCHEMA IF NOT EXISTS BRONZE_DEVOPS{{ ENV_SUFFIX }}.DATA;
