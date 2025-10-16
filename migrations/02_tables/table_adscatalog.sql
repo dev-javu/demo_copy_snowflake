@@ -1,0 +1,30 @@
+-- ADSCATALOG TABLE in BRONZE_DEVOPS with raw suffix 
+create or replace TABLE BRONZE_DEVOPS{{ ENV_SUFFIX }}.MONGODB.ADSCATALOG (
+	_ID VARCHAR(16777216) NOT NULL COMMENT 'auto-generated projection of JSON at: /_id with inferred types: [string]',
+	"_meta/op" VARCHAR(16777216) NOT NULL COMMENT 'Change Operation\nChange operation type: ''c'' Create/Insert ''u'' Update ''d'' Delete.\nauto-generated projection of JSON at: /_meta/op with inferred types: [string]',
+	ACTIVE BOOLEAN NOT NULL COMMENT 'auto-generated projection of JSON at: /active with inferred types: [boolean]',
+	"brand/company" VARCHAR(16777216) COMMENT 'auto-generated projection of JSON at: /brand/company with inferred types: [null string]',
+	"brand/id" VARCHAR(16777216) COMMENT 'auto-generated projection of JSON at: /brand/id with inferred types: [string]',
+	"brand/name" VARCHAR(16777216) COMMENT 'auto-generated projection of JSON at: /brand/name with inferred types: [string]',
+	"brand/product" VARCHAR(16777216) COMMENT 'auto-generated projection of JSON at: /brand/product with inferred types: [null string]',
+	BUCKET VARCHAR(16777216) COMMENT 'auto-generated projection of JSON at: /bucket with inferred types: [string]',
+	CONTENTID VARCHAR(16777216) COMMENT 'auto-generated projection of JSON at: /contentId with inferred types: [string]',
+	CREATEDAT TIMESTAMP_LTZ(9) NOT NULL COMMENT 'auto-generated projection of JSON at: /createdAt with inferred types: [string]',
+	DESCRIPTION VARCHAR(16777216) NOT NULL COMMENT 'auto-generated projection of JSON at: /description with inferred types: [string]',
+	DUSTY BOOLEAN COMMENT 'auto-generated projection of JSON at: /dusty with inferred types: [boolean]',
+	FIXED BOOLEAN COMMENT 'auto-generated projection of JSON at: /fixed with inferred types: [boolean]',
+	FLOW_PUBLISHED_AT TIMESTAMP_LTZ(9) NOT NULL COMMENT 'Flow Publication Time\nFlow publication date-time of this document\nauto-generated projection of JSON at: /_meta/uuid with inferred types: [string]',
+	FREQUENCIES VARIANT COMMENT 'auto-generated projection of JSON at: /frequencies with inferred types: [array]',
+	PRODUCTPLACEMENT VARIANT COMMENT 'auto-generated projection of JSON at: /productPlacement with inferred types: [array]',
+	PUBSUB BOOLEAN COMMENT 'auto-generated projection of JSON at: /pubSub with inferred types: [boolean]',
+	TAXONOMY VARIANT NOT NULL COMMENT 'auto-generated projection of JSON at: /taxonomy with inferred types: [array]',
+	TITLE VARCHAR(16777216) NOT NULL COMMENT 'auto-generated projection of JSON at: /title with inferred types: [string]',
+	UPDATEDAT TIMESTAMP_LTZ(9) NOT NULL COMMENT 'auto-generated projection of JSON at: /updatedAt with inferred types: [string]',
+	URL VARCHAR(16777216) COMMENT 'auto-generated projection of JSON at: /url with inferred types: [string]',
+	VERIFY BOOLEAN NOT NULL COMMENT 'auto-generated projection of JSON at: /verify with inferred types: [boolean]',
+	VERSIONS VARIANT COMMENT 'auto-generated projection of JSON at: /versions with inferred types: [array]',
+	VIDEO VARCHAR(16777216) COMMENT 'auto-generated projection of JSON at: /video with inferred types: [string]',
+	FLOW_DOCUMENT VARIANT NOT NULL COMMENT 'auto-generated projection of JSON at:  with inferred types: [object]',
+	primary key (_ID)
+)COMMENT='Generated for materialization hyphametrics/snowflake/materialize-snowflake of collection hyphametrics/mongodb/raw-personicore/adscatalog'
+;
